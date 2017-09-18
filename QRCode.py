@@ -22,6 +22,7 @@ LengthOfCode  = (8,9,7,7,7,7)
 cwd = os.getcwd()
 
 os.makedirs("QRCodes");
+MySQLInput = open(cwd + "\\" + "QRCodes" + "\\" + "Database Code.txt", 'w')
 
 for i in range(0, len(FileName)):
 	# Let's make the directory
