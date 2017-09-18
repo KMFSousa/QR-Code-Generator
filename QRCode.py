@@ -1,3 +1,7 @@
+#QR Code Generator for Waterloo Engineering Orientation
+#Initially created by Awn Duquom for OWeek 2017
+#Edited by Kristopher Sousa for further OWeeks
+
 import qrcode
 import random 
 import string
@@ -17,17 +21,17 @@ LengthOfCode  = (8,9,7,7,7,7)
 # Where we at?
 cwd = os.getcwd()
 
-MySQLInput = open(cwd + "\\" + "Results.txt", 'w')
+os.makedirs("QRCodes");
 
 for i in range(0, len(FileName)):
 	# Let's make the directory
-	os.makedirs(FileName[i]);
+	os.makedirs("QRCodes" + "\\" + FileName[i])
 
 	# Keep track of the codes we've made so far
 	codes = []
 
 	# Let's open the csv
-	outputFile = open(cwd + "\\" + FileName[i] + "\\" + 'codes.csv', 'w')
+	outputFile = open(cwd + "\\" + "QRCodes" + "\\" + FileName[i] + "\\" + 'codes.csv', 'w')
 	
 	code = ''.join(random.choice(string.ascii_uppercase + string.digits) for _ in range(LengthOfCode[i]))
 
@@ -56,5 +60,5 @@ for i in range(0, len(FileName)):
 		img = qr.make_image()
 
 		# Save it in the file we need it to be saved in
-		img.save(cwd + "\\" + FileName[i] + "\\" + code + ".png")
-	outputFile.close();
+		img.save(cwd + "\\" + "QRCodes" + "\\" + FileName[i] + "\\" + code + ".png")
+	outputFile.close()
