@@ -1,6 +1,6 @@
 #QR Code Generator for Waterloo Engineering Orientation
 #Initially created by Awn Duquom for OWeek 2017
-#Edited by Kristopher Sousa for further OWeeks
+#Further developed by Kristopher Sousa for further OWeeks
 
 import qrcode
 import random 
@@ -10,11 +10,12 @@ from PIL import Image, ImageFont, ImageDraw
 import numpy as np
 
 #### To Do List.... ####
+# Adjust qr settings to have a higher quality QR code for the same size 
 # Save to a single PDF per sticker type
 # Make QR code size variable
 # Make # of QR codes per strip/sheet vary based on their size
 # Consider relating data like details = [[File_name, NumOfCodes, LenOfCodes],[File_name, NumOfCodes, LenOfCodes],[File_name, NumOfCodes, LenOfCodes], ...] 
-# Make font size varry based on length of code (figure out a good ratio with a fixed char width font [times?]) 
+# Make font size vary based on length of code (figure out a good ratio with a fixed char width font [times?]) 
 # Make it so you can added more sticker without deleting the current ones
 	# New sheet, append to SQL .txt, append to .csv
 # Build GUI
@@ -24,8 +25,8 @@ import numpy as np
 
 
 #### Functions ####
-def concate_img_vert(list_im, filename=None):
-	imgs = list_im
+def concate_img_vert(imgs, filename=None):
+	#imgs = list_im
 	#imgs      = [ Image.open(i) for i in list_im ]
 
 	# pick the image which is the smallest, and resize the others to match it (can be arbitrary image shape here)
@@ -38,11 +39,13 @@ def concate_img_vert(list_im, filename=None):
 	imgs_comb = Image.fromarray( imgs_comb, mode='L').convert('1')
 
 	#Save the image
-	#imgs_comb.save( filename )
+	if filename != None:
+		imgs_comb.save( filename )
+	
 	return imgs_comb
 
-def concate_img_horz(list_im, filename=None):
-	imgs = list_im
+def concate_img_horz(imgs, filename=None):
+	#imgs = list_im
 	#imgs      = [ Image.open(i) for i in list_im ]
 
 	# pick the image which is the smallest, and resize the others to match it (can be arbitrary image shape here)
@@ -55,7 +58,9 @@ def concate_img_horz(list_im, filename=None):
 	imgs_comb = Image.fromarray( imgs_comb, mode='L').convert('1')
 
 	#Save the image
-	#imgs_comb.save( filename )
+	if filename != None:
+		imgs_comb.save( filename )
+	
 	return imgs_comb
 
 #### Main Program ####
@@ -69,15 +74,23 @@ def concate_img_horz(list_im, filename=None):
 # LengthOfCode  = (7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7); 
 
 FileName = ("EdCom_Real","Media_Real")#,"JYW_First","JYW_Fourth","JYW_Second","JYW_Third");
-NumberOfCodes = (20, 12)#,12,12,12,12);
+NumberOfCodes = (20, 37)#,12,12,12,12);
 LengthOfCode  = (8,9)#,7,7,7,7)
+
+# Program Settings
+code_width = 5
+code_height = 6
+save_each = False
+save_png = True
+save_pdf = False
+
 
 # Some Temp lists so we don't have to save/load every image
 img_list = []
 img_strips = []
 img_sheets = []
 
-# Where we at?
+# Get the current directory of this code
 cwd = os.getcwd()
 
 # Make ...\QRCodes if it doesn't already exist
@@ -87,7 +100,8 @@ if not os.path.exists("QRCodes"):
 #Appends to the .txt instead of overwriting each time
 MySQLInput = open(cwd + "\\" + "QRCodes" + "\\" + "Database Code.txt", 'a')
 
-for i in range(0, len(FileName)):
+#For each type of QR Code
+for i in xrange(0, len(FileName)):
 	# Let's make the directory (If it exists delete it's contects)
 	if not os.path.exists("QRCodes" + "\\" + FileName[i]):
 		os.makedirs("QRCodes" + "\\" + FileName[i])
@@ -102,9 +116,10 @@ for i in range(0, len(FileName)):
 	# Let's open the csv
 	outputFile = open(cwd + "\\" + "QRCodes" + "\\" + FileName[i] + "\\" + FileName[i]+ ' Codes.csv', 'w')
 	
-	code = ''.join(random.choice(string.ascii_uppercase + string.digits) for _ in range(LengthOfCode[i]))
+	code = ''.join(random.choice(string.ascii_uppercase + string.digits) for _ in xrange(LengthOfCode[i]))
 
-	for x in range(0, NumberOfCodes[i]):
+	# For each code of the given type 
+	for x in xrange(0, NumberOfCodes[i]):
 		# Make our object
 		qr = qrcode.QRCode(
 			version=1,
@@ -113,7 +128,7 @@ for i in range(0, len(FileName)):
 		)
 		# Make the Code
 		while( code in codes ):
-			code = ''.join(random.choice(string.ascii_uppercase + string.digits) for _ in range(LengthOfCode[i]))
+			code = ''.join(random.choice(string.ascii_uppercase + string.digits) for _ in xrange(LengthOfCode[i]))
 			
 		# Add it to the list
 		codes.append(code)
@@ -128,7 +143,7 @@ for i in range(0, len(FileName)):
 		img = qr.make_image()
 
 		# Let's make the QR code border bigger 
-		new_img = Image.new("L", (370, 420), "white")
+		new_img = Image.new("1", (370, 420), "white")
 		new_img.paste(img, (0,0))
 		img = new_img
 		w, h = img.size# For centering text
@@ -140,47 +155,58 @@ for i in range(0, len(FileName)):
 		# draw.text((x, y),"Sample Text",(r,g,b)) 
 		t_w, t_h = font.getsize(code) # For centering text
 		draw.text(((w-t_w)/2,360),code,font=font, fill="black")
-		
+
 		# Image Concatenation into...
 		img_list.append(img)
 		# strips
-		if len(img_list) == 5:
+		if len(img_list) == code_width:
 			img_strips.append(concate_img_horz(img_list))
 			img_list = []
 		
 		# sheets
-		if len(img_strips) == 6:
+		if len(img_strips) == code_height:
 			img_sheets.append(concate_img_vert(img_strips))
 			img_strips = []
 		
-		# the remaining QR Codes with blank pictures
-		if x == NumberOfCodes[i] - 1:
-			#Fill remaining strip with blanks
-			if len(img_lsit) != 0:
-				pass
-			
-			#Fill remaining sheet with blanks
-			if len(img_strips) != 0:
-				pass
-
-
+		#Save each QR Codes as a PNG
 		if save_each:
 			img.save(cwd + "\\" + "QRCodes" + "\\" + FileName[i] + "\\" + code + ".png")
 
-		if save_png:
-			for j, s in enumerate(img_sheets):
-				print "Saved sheet in " + FileName[i] + " " + str(i)
-				s.save(cwd + "\\" + "QRCodes" + "\\" + FileName[i] + "\\" + "Sheet_"+ str(i) + ".png")
+		pass #End of Loop
 
-		if save_pdf:
-			pass
+	#Fill remaining strip with blanks
+	if len(img_list) != 0:
+		#Create blank squares and add them to the list
+		for _ in xrange(len(img_list), code_width):
+			new_img = Image.new("1", (370, 420), "white")
+			img_list.append(new_img)
+		#Concat into a strip and save
+		img_strips.append(concate_img_horz(img_list))
 
-		# Let's make the images into a PDF 
-			#Once this is done we can stop savin each QR code seperatly and maybe stop deleting the folder	
+	#Fill remaining sheet with blanks
+	if len(img_strips) != 0:
+		#Create blank strip
+		new_img = Image.new("1", (code_width*370, 420), "white")
+		#Fill the rest of the strips with blank strips
+		for _ in xrange(len(img_strips), code_height):
+			img_strips.append(new_img)
+		#Concat into a sheet and Save in img_sheets
+		img_sheets.append(concate_img_vert(img_strips))
+
+	#Save sheets as PNGs	
+	if save_png:
+		for j, s in enumerate(img_sheets):
+			print "Saved sheet in " + FileName[i] + " " + str(j)
+			s.save(cwd + "\\" + "QRCodes" + "\\" + FileName[i] + "\\" + "Sheet_"+ str(j) + ".png")
+
+	#Save Sheets as PDFs
+	if save_pdf:
+		pass
 	
 	#Reset the temp variables
 	img_list = []
 	img_strips = []
 	img_sheets = []
 
+	#Close CSV
 	outputFile.close()
