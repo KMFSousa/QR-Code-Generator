@@ -9,13 +9,14 @@ import os
 from PIL import Image, ImageFont, ImageDraw 
 import numpy as np
 
+
 #### To Do List.... ####
 # Adjust qr settings to have a higher quality QR code for the same size 
-# Save to a single PDF per sticker type
 # Make QR code size variable
 # Make # of QR codes per strip/sheet vary based on their size
 # Consider relating data like details = [[File_name, NumOfCodes, LenOfCodes],[File_name, NumOfCodes, LenOfCodes],[File_name, NumOfCodes, LenOfCodes], ...] 
 # Make font size vary based on length of code (figure out a good ratio with a fixed char width font [times?]) 
+# Adjustable PDF border size
 # Make it so you can added more sticker without deleting the current ones
 	# New sheet, append to SQL .txt, append to .csv
 # Build GUI
@@ -81,8 +82,8 @@ LengthOfCode  = (8,9)#,7,7,7,7)
 code_width = 5
 code_height = 6
 save_each = False
-save_png = True
-save_pdf = False
+save_png = False
+save_pdf = True
 
 
 # Some Temp lists so we don't have to save/load every image
@@ -201,7 +202,18 @@ for i in xrange(0, len(FileName)):
 
 	#Save Sheets as PDFs
 	if save_pdf:
-		pass
+		from reportlab.pdfgen import canvas
+		from reportlab.lib.units import inch, cm
+		from reportlab.lib.utils import ImageReader
+		from reportlab.lib.pagesizes import letter
+
+		c = canvas.Canvas(cwd + "\\" + "QRCodes" + "\\" + FileName[i] + "\\" + FileName[i] + ".pdf", pagesize=letter) #FIX LOCATION OF SAVE
+		
+		for j, s in enumerate(img_sheets):
+			img = ImageReader(s)
+			c.drawImage(img, 0.25*inch, 0.25*inch, 8*inch, 10.5*inch) #Allowed for a 0.25 inch border by placing it at point 0.25 inch 0.25 inch and making it width 8.5 - 0.25*2 inch and height 11 - 0.25*2 inch
+			c.showPage()
+		c.save()
 	
 	#Reset the temp variables
 	img_list = []
