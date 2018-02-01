@@ -75,15 +75,15 @@ def concate_img_horz(imgs, filename=None):
 # LengthOfCode  = (7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7); 
 
 FileName = ("EdCom_Real","Media_Real")#,"JYW_First","JYW_Fourth","JYW_Second","JYW_Third");
-NumberOfCodes = (20, 37)#,12,12,12,12);
+NumberOfCodes = (2, 3)#,12,12,12,12);
 LengthOfCode  = (8,9)#,7,7,7,7)
 
 # Program Settings
 code_width = 5
 code_height = 6
-save_each = False
-save_png = False
-save_pdf = True
+save_each = True
+save_png = True
+save_pdf = False
 
 
 # Some Temp lists so we don't have to save/load every image
@@ -121,12 +121,7 @@ for i in xrange(0, len(FileName)):
 
 	# For each code of the given type 
 	for x in xrange(0, NumberOfCodes[i]):
-		# Make our object
-		qr = qrcode.QRCode(
-			version=1,
-			error_correction=qrcode.constants.ERROR_CORRECT_L,
-			border=2,
-		)
+
 		# Make the Code
 		while( code in codes ):
 			code = ''.join(random.choice(string.ascii_uppercase + string.digits) for _ in xrange(LengthOfCode[i]))
@@ -139,20 +134,37 @@ for i in xrange(0, len(FileName)):
 		MySQLInput.write("INSERT INTO QRCodes (QRCode,Submitted,Type) VALUES ('" + code + "', 0,'" + FileName[i] + "'); \n\n")
 		
 		# Let's make the QRCode
-		qr.add_data("engorientation.uwaterloo.ca/submitPoint.php?ID=" + code)
+			# Make our object
+		qr = qrcode.QRCode(
+			# Note: Modules here are the black/white boxes that make up the QR Code
+			#version=1, 		#How Many modules is is square ie: Version 1 is 21 by 21 modules 2 is 25 by 25 modules etc
+			error_correction=qrcode.constants.ERROR_CORRECT_Q, #Percent of error that can be corrected. Q is 25%  
+			box_size=10, 	#How many pixels per module
+			border=5,		#How many modules the border is made up of
+		)
+			#Insert Data
+		#qr.add_data("engorientation.uwaterloo.ca/submitPoint.php?ID=" + code)
+		qr.add_data(1)
 		qr.make()
 		img = qr.make_image()
+		
 
-		# Let's make the QR code border bigger 
-		new_img = Image.new("1", (370, 420), "white")
-		new_img.paste(img, (0,0))
-		img = new_img
+		
+		# # Let's make the QR code border bigger 
+		# new_img = Image.new("1", (370, 420), "white")
+		# new_img.paste(img, (0,0))
+		# img = new_img
 		w, h = img.size# For centering text
+
+		img.show()
+		print w, h
+		import time
+		time.sleep(10)
 		
 		# Let's add the QR Code's name below it
 		draw = ImageDraw.Draw(img)
 		# font = ImageFont.truetype(<font-file>, <font-size>)
-		font = ImageFont.truetype("C:\Windows\Fonts\Arial.ttf", 48)
+		font = ImageFont.truetype("C:\Windows\Fonts\cour.ttf", 48)
 		# draw.text((x, y),"Sample Text",(r,g,b)) 
 		t_w, t_h = font.getsize(code) # For centering text
 		draw.text(((w-t_w)/2,360),code,font=font, fill="black")
