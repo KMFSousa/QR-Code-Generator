@@ -2,6 +2,14 @@
 #Initially created by Awn Duquom for OWeek 2017
 #Further developed by Kristopher Sousa for further OWeeks
 
+
+
+############################################################################
+### See the Orientation Week GitLab code base for the most current code! ###
+############################################################################
+
+
+
 import qrcode
 import random 
 import string
